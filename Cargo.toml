@@ -4,8 +4,12 @@ version = "0.1.0"
 license = "MIT OR Apache-2.0"
 edition = "2024"
 authors = ["Macdu <Macdu@users.noreply.github.com>"]
+readme = "README.md"
+repository = "https://github.com/Macdu/squashfs_reader"
 description = "Fully featured rust reader for the squashfs archive format"
 rust-version = "1.85"
+keywords = ["squashfs", "filesystem", "archive"]
+categories = ["filesystem", "compression"]
 
 [dependencies]
 bitflags = "2.9.0"
