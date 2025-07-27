@@ -5,6 +5,7 @@ license = "MIT OR Apache-2.0"
 edition = "2024"
 authors = ["Macdu <Macdu@users.noreply.github.com>"]
 description = "Fully featured rust reader for the squashfs archive format"
+rust-version = "1.85"
 
 [dependencies]
 bitflags = "2.9.0"

@@ -387,16 +387,13 @@ impl MetadataDir {
                 reader.read_exact(&mut entry_name)?;
                 Ok((dir_idx, entry_name))
             })
-            .skip_while(|idx_result| {
-                if let Ok((dir_idx, name)) = idx_result
-                    && name.as_slice() <= entry
-                {
+            .skip_while(|idx_result| match idx_result {
+                Ok((dir_idx, name)) if name.as_slice() <= entry => {
                     dir_offset = dir_idx.index.get();
                     dir_block_location = dir_idx.start.get();
                     true
-                } else {
-                    false
                 }
+                _ => false,
             });
 
         let dir_upper_bound = greater_entry

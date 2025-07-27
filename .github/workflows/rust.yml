@@ -1,0 +1,68 @@
+name: Build and Test squashfs_reader
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  check:
+    name: Check style
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: taiki-e/install-action@cargo-rdme
+    - name: Check Readme
+      run: cargo rdme --check
+    - name: Check fmt
+      run: cargo fmt --all -- --check
+
+  test:
+    name: Test crate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Test against all compression formats supported by the squashfs format
+        compression: [gzip, lzo, lz4, lzma, xz, zstd]
+        # Test all possible crates used for deompression
+        feature: [best_performance, only_rust]
+        # For lzo, gzip and lzma, the best performance implementation is already the rust implementation 
+        # (the feature selected does not make a difference in this case)
+        exclude:
+          - feature: only_rust
+            compression: lzo
+          - feature: only_rust
+            compression: gzip
+          - feature: only_rust
+            compression: lzma
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@1.85.0
+
+    - name: Install squashfs-tools
+      run: sudo apt-get update && sudo apt-get install -y squashfs-tools
+
+    - name: Build the 'unpack' example
+      run: |
+        echo "Building with feature: ${{ matrix.feature }}"
+        cargo build --example unpack --features=${{ matrix.feature }} --no-default-features
+
+    - name: Create squashfs file for testing
+      run: |
+        # Create a squashfs archive of the current directory.
+        # We use the target folder created by the previous step as the input
+        echo "Creating squashfs file..."
+        mksquashfs ./target target_compr.squashfs -comp ${{ matrix.compression }}
+
+    - name: Unpack the squashfs file
+      run: |
+        echo "Unpacking file with the compiled example..."
+        cargo run --features=${{ matrix.feature }} --no-default-features --example unpack target_compr.squashfs ./unpacked_target
+
+    - name: Verify extracted content against original
+      run: |
+        echo "Comparing original repository with the unpacked directory..."
+        diff -r ./target ./unpacked_target
+
