@@ -13,12 +13,12 @@ categories = ["filesystem", "compression"]
 
 [dependencies]
 bitflags = "2.9.0"
-quick_cache = "0.6.13"
+quick_cache = "0.7.0"
 zerocopy = { version = "0.8.24", features = ["derive", "std"] }
 flate2 = {version = "1.1.1", features = ["zlib-rs"] }
 liblzma = { version = "0.4.1", optional = true }
 lzma-rs = { version = "0.3.0", optional = true }
-lz4_flex = {version = "0.11.3", default-features = false, features = ["std"]}
+lz4_flex = {version = "0.14.0", default-features = false, features = ["std"]}
 zstd-safe = {version = "7.2.4", features = ["std"], optional = true }
 ruzstd = { version = "0.8.1", optional = true, default-features = false, features = ["std"]}
 
