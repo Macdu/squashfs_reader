@@ -20,7 +20,7 @@ pub(crate) fn decompress_block(
             let mut decoder = flate2::Decompress::new(true);
             decoder
                 .decompress(input, &mut output, flate2::FlushDecompress::Finish)
-                .unwrap();
+                .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
 
             if !fill_block {
                 output.truncate(decoder.total_out() as usize);
