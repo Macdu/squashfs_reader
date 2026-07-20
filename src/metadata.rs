@@ -402,7 +402,10 @@ impl MetadataDir {
             .map(|(dir_idx, _)| dir_idx.index.get())
             .unwrap_or(self.file_size);
 
-        let block_offset = (self.listing_location.offset_within_block() + dir_offset as u16)
+        let block_offset = self
+            .listing_location
+            .offset_within_block()
+            .wrapping_add(dir_offset as u16)
             % METADATA_BLOCK_SIZE as u16;
         let start_metadata =
             MetadataRef::from_block_and_offset(dir_block_location as u64, block_offset);
