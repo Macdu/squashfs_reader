@@ -34,7 +34,7 @@ pub(crate) fn decompress_block(
             } else {
                 liblzma::stream::Stream::new_lzma_decoder(u64::MAX)
             }
-            .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
+            .map_err(io::Error::other)?;
             decoder
                 .process(input, &mut output, liblzma::stream::Action::Finish)
                 .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;

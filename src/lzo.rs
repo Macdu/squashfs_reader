@@ -22,7 +22,7 @@ pub(crate) enum Error {
     /// Not all of the input was used while decompressing the data
     InputNotConsumed,
     /// Miscellaneous error while decompressing the data
-    Error,
+    Other,
 }
 
 /// State while decompressing: number of literals which were copied in the last phase
@@ -54,7 +54,7 @@ impl TryFrom<u8> for State {
             1 => Ok(Self::Lit1),
             2 => Ok(Self::Lit2),
             3 => Ok(Self::Lit3),
-            _ => Err(Error::Error),
+            _ => Err(Error::Other),
         }
     }
 }
@@ -118,7 +118,7 @@ pub(crate) fn decompress(input: &[u8], output: &mut [u8]) -> Result<usize, Error
         }
         let zero_len = *in_pos - old_in_pos;
         if zero_len > MAX_255_COUNT {
-            return Err(Error::Error);
+            return Err(Error::Other);
         }
 
         let additional = read_u8(in_pos)?;
@@ -145,7 +145,7 @@ pub(crate) fn decompress(input: &[u8], output: &mut [u8]) -> Result<usize, Error
     };
 
     // Does the bitstream support rle (version 1)
-    let support_rle = if *input.get(0).ok_or(Error::Error)? == 17 && input.len() >= 5 {
+    let support_rle = if *input.first().ok_or(Error::Other)? == 17 && input.len() >= 5 {
         in_pos += 1;
         // bitstream version. If the first byte is 17, and compressed
         // stream length is at least 5 bytes (length of shortest possible
@@ -163,7 +163,7 @@ pub(crate) fn decompress(input: &[u8], output: &mut [u8]) -> Result<usize, Error
     };
 
     // First byte encoding
-    match *input.get(in_pos).ok_or(Error::Error)? {
+    match *input.get(in_pos).ok_or(Error::Other)? {
         inst @ 21.. => {
             // 21..255 : copy literal string
             //           length = (byte - 17) = 4..238
@@ -349,9 +349,9 @@ pub(crate) fn decompress(input: &[u8], output: &mut [u8]) -> Result<usize, Error
         }
         if lb_len <= lb_offset {
             // If the copy sections are not overlapping
-            let (src, dst) = output.split_at_mut_checked(out_pos).ok_or(Error::Error)?;
-            let src = src.get(lb_start..lb_start + lb_len).ok_or(Error::Error)?;
-            let dst = dst.get_mut(..lb_len).ok_or(Error::Error)?;
+            let (src, dst) = output.split_at_mut_checked(out_pos).ok_or(Error::Other)?;
+            let src = src.get(lb_start..lb_start + lb_len).ok_or(Error::Other)?;
+            let dst = dst.get_mut(..lb_len).ok_or(Error::Other)?;
             dst.copy_from_slice(src);
         } else {
             // copy_within has the same semantics as memmove, which is not what we want
@@ -364,9 +364,9 @@ pub(crate) fn decompress(input: &[u8], output: &mut [u8]) -> Result<usize, Error
                 .ok_or(Error::OutputOverrun)?;
             let src_cells = output_cells
                 .get(lb_start..lb_start + lb_len)
-                .ok_or(Error::Error)?;
+                .ok_or(Error::Other)?;
 
-            for (src, dst) in src_cells.into_iter().zip(dst_cells) {
+            for (src, dst) in src_cells.iter().zip(dst_cells) {
                 dst.set(src.get());
             }
         }

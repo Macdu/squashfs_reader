@@ -70,7 +70,7 @@ impl ReadAt for &fs::File {
 }
 
 #[cfg(any(unix, windows))]
-impl<'a> ReadAt for fs::File {
+impl ReadAt for fs::File {
     fn read_at(&self, buf: &mut [u8], offset: u64) -> io::Result<usize> {
         (&self).read_at(buf, offset)
     }
@@ -261,7 +261,7 @@ impl<T> BlockLookupTable<T> {
 
     pub fn new(reader: &impl ReadAt, offset: u64, nb_items: u32) -> Result<Self> {
         let nb_items_per_block = Self::nb_items_per_block();
-        let nb_blocks = nb_items.next_multiple_of(nb_items_per_block) / nb_items_per_block;
+        let nb_blocks = nb_items.div_ceil(nb_items_per_block);
         let mut blocks_offset = vec![0u64; nb_blocks as usize];
         reader.read_exact_at(blocks_offset.as_mut_bytes(), offset)?;
 
@@ -411,7 +411,7 @@ impl<T: ReadAt> FileReader<T> {
     /// Return the block containing the given offset as well as if the block is a fragment
     fn get_block_for_offset(&self, offset: u64) -> Result<(CachedBlock, bool)> {
         if offset >= self.file_size {
-            return Err(io::ErrorKind::UnexpectedEof)?;
+            return Err(io::ErrorKind::UnexpectedEof.into());
         }
 
         let block_index = offset / self.fs.info.block_size as u64;

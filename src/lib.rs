@@ -218,7 +218,7 @@ impl FileSystem<fs::File> {
     where
         P: AsRef<path::Path>,
     {
-        FileSystemInner::from_path_with_options(path, options).map(|inner| Self(inner))
+        FileSystemInner::from_path_with_options(path, options).map(Self)
     }
 }
 
@@ -242,7 +242,7 @@ impl<T: ReadAt> FileSystem<T> {
     }
 
     pub fn from_read_at_with_options(reader: T, options: OpenOptions) -> Result<Self> {
-        FileSystemInner::from_read_at_with_options(reader, options).map(|inner| Self(inner))
+        FileSystemInner::from_read_at_with_options(reader, options).map(Self)
     }
 
     /// Return the last time the archive was modified
@@ -367,12 +367,8 @@ impl<T: ReadAt> FileSystemInner<T> {
 
         let metata_cache_blocks = options
             .metadata_cache_size
-            .next_multiple_of(METADATA_BLOCK_SIZE as usize)
-            / METADATA_BLOCK_SIZE as usize;
-        let file_cache_blocks = options
-            .file_cache_size
-            .next_multiple_of(block_size as usize)
-            / block_size as usize;
+            .div_ceil(METADATA_BLOCK_SIZE as usize);
+        let file_cache_blocks = options.file_cache_size.div_ceil(block_size as usize);
         let caches = Caches {
             metadata_cache: Cache::new(metata_cache_blocks.max(1)),
             file_cache: Cache::new(file_cache_blocks.max(1)),

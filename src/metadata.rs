@@ -64,6 +64,7 @@ impl Metadata {
 
     /// Returns the size of the file, in bytes, this metadata is for.
     /// If a symlink, returns 0
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> u64 {
         match &self.ty {
             MetadataType::File(file) => file.file_size,
@@ -225,7 +226,7 @@ impl Metadata {
                         raw_dir.block_offset.get(),
                     ),
                     // link_count: raw_dir.link_count.get(),
-                    file_size: file_size,
+                    file_size,
                     // parent_inode: raw_dir.parent_inode.get(),
                     index_count: raw_dir.index_count.get(),
                 };
@@ -302,7 +303,7 @@ impl MetadataFile {
         let nb_blocks = if frag_info.is_some() {
             self.file_size / block_size
         } else {
-            self.file_size.next_multiple_of(block_size) / block_size
+            self.file_size.div_ceil(block_size)
         };
 
         let mut compressed_block_sizes = vec![0u32; nb_blocks as usize];
