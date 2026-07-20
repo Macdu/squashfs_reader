@@ -39,7 +39,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@1.85.0
+    - uses: dtolnay/rust-toolchain@1.87.0
 
     - name: Install squashfs-tools
       run: sudo apt-get update && sudo apt-get install -y squashfs-tools
